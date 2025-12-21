@@ -28,6 +28,131 @@ body {
   min-height: 100vh;
 }
 
+.montage-banner {
+  position: relative;
+  margin: 18px 5vw 28px;
+  height: 240px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  background: radial-gradient(140% 120% at 10% 10%, rgba(255, 122, 156, 0.2), transparent 35%),
+    radial-gradient(120% 120% at 90% 90%, rgba(0, 196, 179, 0.16), transparent 40%),
+    #0f111a;
+  z-index: 1;
+}
+
+.montage-strip {
+  position: absolute;
+  inset: 0;
+  padding: 16px 20px;
+  overflow: hidden;
+}
+
+.montage-track {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: max-content;
+  animation: marquee 38s linear infinite;
+}
+
+.montage-frame {
+  height: 210px;
+  width: 170px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0c0e15;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+}
+
+.montage-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes slow-zoom {
+  from {
+    transform: scale(1.03);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes slideshow {
+  0%,
+  9% {
+    background-image: url("gambar1.jpeg");
+    background-position: 48% 52%;
+  }
+  10%,
+  19% {
+    background-image: url("gambar2.jpeg");
+    background-position: 52% 48%;
+  }
+  20%,
+  29% {
+    background-image: url("gambar3.jpeg");
+    background-position: 46% 50%;
+  }
+  30%,
+  39% {
+    background-image: url("gambar4.jpeg");
+    background-position: 50% 54%;
+  }
+  40%,
+  49% {
+    background-image: url("gambar5.jpeg");
+    background-position: 54% 46%;
+  }
+  50%,
+  59% {
+    background-image: url("gambar6.jpeg");
+    background-position: 47% 47%;
+  }
+  60%,
+  69% {
+    background-image: url("gambar7.jpeg");
+    background-position: 53% 53%;
+  }
+  70%,
+  79% {
+    background-image: url("gambar8.jpeg");
+    background-position: 45% 52%;
+  }
+  80%,
+  89% {
+    background-image: url("gambar9.jpeg");
+    background-position: 52% 45%;
+  }
+  90%,
+  100% {
+    background-image: url("gambar10.jpeg");
+    background-position: 50% 50%;
+  }
+}
+
+@keyframes pan-h {
+  from {
+    background-position: 120% 50%;
+  }
+  to {
+    background-position: -20% 50%;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 body::before,
 body::after {
   content: "";
@@ -251,6 +376,19 @@ body::after {
   border-radius: 18px;
   padding: 28px;
   box-shadow: var(--shadow);
+}
+
+.logo-holder {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.logo-img {
+  height: 96px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15));
 }
 
 .auth-card h2 {
@@ -771,6 +909,20 @@ tr:hover {
 }
 
 @media (max-width: 720px) {
+  .montage-banner {
+    height: 200px;
+    margin: 14px 4vw 22px;
+  }
+
+  .montage-strip {
+    padding: 12px 14px;
+  }
+
+  .montage-frame {
+    height: 180px;
+    width: 150px;
+  }
+
   .hero,
   .panel-header {
     flex-direction: column;

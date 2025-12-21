@@ -50,6 +50,11 @@
         <p class="stat-foot">Set tarikh susulan</p>
       </div>
       <div class="stat-card">
+        <p class="stat-label">Perlu di panggil</p>
+        <div class="stat-value" id="callCount">0</div>
+        <p class="stat-foot">Menunggu panggilan/temu janji</p>
+      </div>
+      <div class="stat-card">
         <p class="stat-label">Selesai</p>
         <div class="stat-value" id="doneCount">0</div>
         <p class="stat-foot">Sesi ditutup</p>
@@ -92,14 +97,40 @@
             </div>
 
             <div class="field">
+              <label for="recordedBy">Kaunselor</label>
+              <select id="recordedBy" name="recordedBy" required>
+                <option value="">Pilih kaunselor</option>
+                <option value="NOR AZERINA BINTI NOORDIN">NOR AZERINA BINTI NOORDIN</option>
+                <option value="WAN NORSITTA BINTI WAN AB RAHMAN">WAN NORSITTA BINTI WAN AB RAHMAN</option>
+                <option value="TENGKU ANISA AIYSHA BINTI TENGKU AZMI">TENGKU ANISA AIYSHA BINTI TENGKU AZMI</option>
+                <option value="Lain-lain">Lain-lain</option>
+              </select>
+            </div>
+
+            <div class="field" id="recordedByOtherWrap" hidden>
+              <label for="recordedByOther">Kaunselor (lain-lain)</label>
+              <input id="recordedByOther" name="recordedByOther" type="text" placeholder="Nama kaunselor lain" />
+            </div>
+
+            <div class="field">
               <label for="sessionType">Jenis sesi</label>
               <select id="sessionType" name="sessionType" required>
                 <option value="">Pilih satu</option>
-                <option>Perbincangan akademik</option>
-                <option>Bimbingan disiplin</option>
-                <option>Kaunseling emosi</option>
-                <option>Rujukan ibu bapa</option>
-                <option>Lain-lain</option>
+                <option>Kaunseling Individu</option>
+                <option>Bimbingan Individu</option>
+                <option>Kaunseling Kelompok</option>
+                <option>Bimbingan Kelompok</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="serviceFocus">Fokus perkhidmatan</label>
+              <select id="serviceFocus" name="serviceFocus" required>
+                <option value="">Pilih fokus</option>
+                <option>Pembangunan Dan Perkembangan Sahsiah Diri Murid</option>
+                <option>Pendidikan Kerjaya Murid</option>
+                <option>Peningkatan Disiplin Diri Murid</option>
+                <option>Psikososial dan Kesejahteraan Mental Murid</option>
               </select>
             </div>
 
@@ -120,17 +151,13 @@
                 <option>Dalam proses</option>
                 <option>Selesai</option>
                 <option>Perlu susulan</option>
+                <option>Perlu di panggil</option>
               </select>
             </div>
 
             <div class="field">
               <label for="followUp">Tarikh susulan (jika ada)</label>
               <input id="followUp" name="followUp" type="date" />
-            </div>
-
-            <div class="field">
-              <label for="recordedBy">Dicatat oleh</label>
-              <input id="recordedBy" name="recordedBy" type="text" placeholder="Nama guru" />
             </div>
 
             <div class="field">
@@ -160,6 +187,7 @@
                 <option value="Dalam proses">Dalam proses</option>
                 <option value="Selesai">Selesai</option>
                 <option value="Perlu susulan">Perlu susulan</option>
+                <option value="Perlu di panggil">Perlu di panggil</option>
               </select>
               <button type="button" class="ghost" id="exportCsv">Export CSV</button>
               <button type="button" class="ghost danger" id="clearLog">Padam semua</button>
@@ -172,7 +200,7 @@
                 <tr>
                   <th>Tarikh</th>
                   <th>Nama / Kelas</th>
-                  <th>Jenis & status</th>
+                  <th>Jenis / fokus / status</th>
                   <th>Ringkasan & tindakan</th>
                   <th>Susulan</th>
                   <th>Tindakan</th>
@@ -206,17 +234,17 @@
             <div class="stat-card">
               <p class="stat-label">Minggu ini</p>
               <div class="stat-value" id="weeklyTotal">0</div>
-              <p class="stat-foot" id="weeklyFoot">0 dalam proses • 0 susulan • 0 selesai</p>
+              <p class="stat-foot" id="weeklyFoot">0 dalam proses | 0 susulan | 0 perlu di panggil | 0 selesai</p>
             </div>
             <div class="stat-card">
               <p class="stat-label">Bulan ini</p>
               <div class="stat-value" id="monthlyTotal">0</div>
-              <p class="stat-foot" id="monthlyFoot">0 dalam proses • 0 susulan • 0 selesai</p>
+              <p class="stat-foot" id="monthlyFoot">0 dalam proses | 0 susulan | 0 perlu di panggil | 0 selesai</p>
             </div>
             <div class="stat-card">
               <p class="stat-label">Tahun ini</p>
               <div class="stat-value" id="yearlyTotal">0</div>
-              <p class="stat-foot" id="yearlyFoot">0 dalam proses • 0 susulan • 0 selesai</p>
+              <p class="stat-foot" id="yearlyFoot">0 dalam proses | 0 susulan | 0 perlu di panggil | 0 selesai</p>
             </div>
           </div>
         </section>
@@ -265,6 +293,9 @@
     const submitButton = document.getElementById('submitButton');
     const cancelEditButton = document.getElementById('cancelEdit');
     const logBody = document.getElementById('logBody');
+    const recordedBySelect = document.getElementById('recordedBy');
+    const recordedByOtherWrap = document.getElementById('recordedByOtherWrap');
+    const recordedByOther = document.getElementById('recordedByOther');
     const searchInput = document.getElementById('searchInput');
     const statusFilter = document.getElementById('statusFilter');
     const emptyState = document.getElementById('emptyState');
@@ -273,6 +304,7 @@
     const totalCount = document.getElementById('totalCount');
     const inProgressCount = document.getElementById('inProgressCount');
     const followUpCount = document.getElementById('followUpCount');
+    const callCount = document.getElementById('callCount');
     const doneCount = document.getElementById('doneCount');
     const tabButtons = document.querySelectorAll('.tab-button');
     const panels = {
@@ -303,6 +335,12 @@
     let uploads = [];
     let uploadsQuery = null;
     let uploadsListener = null;
+
+    const toggleRecordedByOther = () => {
+      const isOther = recordedBySelect.value === 'Lain-lain';
+      recordedByOtherWrap.hidden = !isOther;
+      if (!isOther) recordedByOther.value = '';
+    };
 
     const makeId = () => (crypto.randomUUID ? crypto.randomUUID() : `id-${Date.now()}-${Math.random().toString(16).slice(2)}`);
 
@@ -376,12 +414,25 @@
       form.studentName.value = entry.studentName;
       form.className.value = entry.className;
       form.sessionDate.value = entry.sessionDate;
-      form.sessionType.value = entry.sessionType;
+      form.sessionType.value = entry.sessionType || '';
+      form.serviceFocus.value = entry.serviceFocus || '';
       form.sessionNotes.value = entry.sessionNotes;
       form.actions.value = entry.actions;
       form.status.value = entry.status;
       form.followUp.value = entry.followUp || '';
-      form.recordedBy.value = entry.recordedBy || '';
+      const counselorValue = entry.recordedBy || '';
+      const optionValues = Array.from(recordedBySelect.options).map((opt) => opt.value);
+      if (counselorValue && optionValues.includes(counselorValue)) {
+        recordedBySelect.value = counselorValue;
+        recordedByOther.value = '';
+      } else if (counselorValue) {
+        recordedBySelect.value = 'Lain-lain';
+        recordedByOther.value = counselorValue;
+      } else {
+        recordedBySelect.value = '';
+        recordedByOther.value = '';
+      }
+      toggleRecordedByOther();
       form.location.value = entry.location || '';
       submitButton.textContent = 'Kemaskini sesi';
       cancelEditButton.hidden = false;
@@ -394,6 +445,8 @@
       cancelEditButton.hidden = true;
       form.reset();
       form.sessionDate.value = '';
+      recordedByOther.value = '';
+      toggleRecordedByOther();
     };
 
     const deleteEntry = (id) => {
@@ -420,7 +473,7 @@
         const selYear = Number(statsYear.value) || now.getFullYear();
         start.setFullYear(selYear, 0, 1);
       }
-      const stats = { total: 0, inProgress: 0, followUp: 0, done: 0 };
+      const stats = { total: 0, inProgress: 0, followUp: 0, call: 0, done: 0 };
       entries.forEach((item) => {
         const d = new Date(item.sessionDate);
         if (!Number.isFinite(d.getTime())) return;
@@ -438,6 +491,7 @@
           stats.total += 1;
           if (item.status === 'Dalam proses') stats.inProgress += 1;
           if (item.status === 'Perlu susulan') stats.followUp += 1;
+          if (item.status === 'Perlu di panggil') stats.call += 1;
           if (item.status === 'Selesai') stats.done += 1;
         }
       });
@@ -448,7 +502,7 @@
       const week = getPeriodCounts('week');
       const month = getPeriodCounts('month');
       const year = getPeriodCounts('year');
-      const foot = (s) => `${s.inProgress} dalam proses • ${s.followUp} susulan • ${s.done} selesai`;
+      const foot = (s) => `${s.inProgress} dalam proses | ${s.followUp} susulan | ${s.call} perlu di panggil | ${s.done} selesai`;
       weeklyTotal.textContent = week.total;
       weeklyFoot.textContent = foot(week);
       monthlyTotal.textContent = month.total;
@@ -466,6 +520,8 @@
           !query ||
           item.studentName.toLowerCase().includes(query) ||
           item.className.toLowerCase().includes(query) ||
+          (item.serviceFocus || '').toLowerCase().includes(query) ||
+          (item.recordedBy || '').toLowerCase().includes(query) ||
           item.sessionNotes.toLowerCase().includes(query) ||
           item.actions.toLowerCase().includes(query);
         return matchesStatus && matchesQuery;
@@ -477,10 +533,12 @@
       const total = entries.length;
       const inProgress = entries.filter((i) => i.status === 'Dalam proses').length;
       const followUp = entries.filter((i) => i.status === 'Perlu susulan').length;
+      const callNeeded = entries.filter((i) => i.status === 'Perlu di panggil').length;
       const done = entries.filter((i) => i.status === 'Selesai').length;
       totalCount.textContent = total;
       inProgressCount.textContent = inProgress;
       followUpCount.textContent = followUp;
+      callCount.textContent = callNeeded;
       doneCount.textContent = done;
       updateStats();
 
@@ -498,7 +556,8 @@
           <td>
             <div class="tag tight">${item.sessionType}</div>
             <div class="status ${item.status.replace(/\\s+/g, '-').toLowerCase()}">${item.status}</div>
-            <div class="cell-sub">${item.recordedBy || 'Guru UPK'}</div>
+            <div class="cell-sub">Fokus: ${item.serviceFocus || '-'}</div>
+            <div class="cell-sub">Kaunselor: ${item.recordedBy || 'Guru UPK'}</div>
           </td>
           <td>
             <div class="cell-strong">${item.sessionNotes}</div>
@@ -537,7 +596,7 @@
         wrap.innerHTML = `
           <div class="upload-meta">
             <div class="cell-strong">${item.name || 'Tanpa nama'}</div>
-            <div class="cell-sub">${Math.round((item.size || 0) / 1024)} KB • ${formatDateTime(item.createdAt)}</div>
+            <div class="cell-sub">${Math.round((item.size || 0) / 1024)} KB | ${formatDateTime(item.createdAt)}</div>
           </div>
           <div class="upload-actions">
             <a class="ghost small" href="${item.url}" target="_blank" rel="noopener noreferrer">Lihat</a>
@@ -565,16 +624,19 @@
       event.preventDefault();
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
+      const recordedByValueRaw = data.recordedBy === 'Lain-lain' ? data.recordedByOther : data.recordedBy;
+      const recordedByValue = (recordedByValueRaw || '').trim() || (currentUser?.displayName || currentUser?.email || 'Guru UPK');
       const basePayload = {
         studentName: data.studentName.trim(),
         className: data.className.trim(),
         sessionDate: data.sessionDate,
         sessionType: data.sessionType,
+        serviceFocus: data.serviceFocus.trim(),
         sessionNotes: data.sessionNotes.trim(),
         actions: data.actions.trim(),
         status: data.status,
         followUp: data.followUp,
-        recordedBy: data.recordedBy.trim() || (currentUser?.displayName || currentUser?.email || 'Guru UPK'),
+        recordedBy: recordedByValue,
         location: data.location.trim(),
         uid: currentUser?.uid || ''
       };
@@ -590,6 +652,8 @@
 
       cancelEdit();
     });
+
+    recordedBySelect.addEventListener('change', toggleRecordedByOther);
 
     form.addEventListener('reset', () => {
       cancelEdit();
@@ -618,11 +682,12 @@
         'Nama Murid',
         'Kelas',
         'Jenis Sesi',
+        'Fokus Perkhidmatan',
         'Status',
         'Ringkasan',
         'Tindakan',
         'Susulan',
-        'Dicatat oleh',
+        'Kaunselor',
         'Lokasi',
         'Tarikh Cipta'
       ];
@@ -631,6 +696,7 @@
         item.studentName,
         item.className,
         item.sessionType,
+        item.serviceFocus || '',
         item.status,
         item.sessionNotes,
         item.actions,
@@ -734,6 +800,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      toggleRecordedByOther();
       const today = new Date();
       currentDate.textContent = today.toLocaleDateString('ms-MY', {
         weekday: 'long',

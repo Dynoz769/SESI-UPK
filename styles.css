@@ -648,6 +648,11 @@ tr:hover {
   color: #b52448;
 }
 
+.status.perlu-di-panggil {
+  background: rgba(255, 160, 67, 0.18);
+  color: #a05a00;
+}
+
 .empty {
   display: flex;
   align-items: center;

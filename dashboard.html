@@ -275,7 +275,7 @@
           <div class="panel-header">
             <div>
               <p class="eyebrow">Analisa</p>
-              <h2>Gambaran mingguan, bulanan, tahunan</h2>
+              <h2>Analisa Mingguan/Bulanan/Tahunan</h2>
               <p class="hint">Kiraan berdasarkan tarikh sesi yang dimasukkan.</p>
             </div>
           </div>
@@ -300,10 +300,24 @@
               <div class="stat-value" id="monthlyTotal">0</div>
               <p class="stat-foot" id="monthlyFoot">0 dalam proses | 0 susulan | 0 perlu di panggil | 0 selesai</p>
             </div>
-            <div class="stat-card">
-              <p class="stat-label">Tahun ini</p>
-              <div class="stat-value" id="yearlyTotal">0</div>
-              <p class="stat-foot" id="yearlyFoot">0 dalam proses | 0 susulan | 0 perlu di panggil | 0 selesai</p>
+          <div class="stat-card">
+            <p class="stat-label">Tahun ini</p>
+            <div class="stat-value" id="yearlyTotal">0</div>
+            <p class="stat-foot" id="yearlyFoot">0 dalam proses | 0 susulan | 0 perlu di panggil | 0 selesai</p>
+          </div>
+        </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <p class="eyebrow">Muat turun</p>
+                <h3>CSV mengikut tempoh</h3>
+                <p class="hint">Guna pilihan bulan/tahun untuk muat turun bulanan & tahunan.</p>
+              </div>
+              <div class="chart-toggles">
+                <button type="button" class="ghost small download-toggle" data-download-period="week">Minggu ini</button>
+                <button type="button" class="ghost small download-toggle" data-download-period="month">Bulan dipilih</button>
+                <button type="button" class="ghost small download-toggle" data-download-period="year">Tahun dipilih</button>
+              </div>
             </div>
           </div>
           <div class="chart-card">
@@ -422,6 +436,7 @@
     const statsYear = document.getElementById('statsYear');
     const chartBars = document.getElementById('chartBars');
     const chartToggleButtons = document.querySelectorAll('.chart-toggle');
+    const downloadButtons = document.querySelectorAll('[data-download-period]');
     const uploadFile = document.getElementById('uploadFile');
     const uploadButton = document.getElementById('uploadButton');
     const uploadStatus = document.getElementById('uploadStatus');
@@ -578,10 +593,11 @@
       if (editingId === id) cancelEdit();
     };
 
-    const getPeriodCounts = (period) => {
+    const getPeriodRange = (period) => {
       const now = new Date();
       const start = new Date(now);
       start.setHours(0, 0, 0, 0);
+      let end = new Date(now);
       if (period === 'week') {
         const day = start.getDay(); // 0 Sun
         const diff = (day === 0 ? 6 : day - 1);
@@ -590,24 +606,21 @@
         const selYear = Number(statsYear.value) || now.getFullYear();
         const selMonth = Number(statsMonth.value); // 0-11
         start.setFullYear(selYear, selMonth, 1);
+        end = new Date(selYear, selMonth + 1, 0, 23, 59, 59, 999);
       } else if (period === 'year') {
         const selYear = Number(statsYear.value) || now.getFullYear();
         start.setFullYear(selYear, 0, 1);
+        end = new Date(selYear, 11, 31, 23, 59, 59, 999);
       }
+      return { start, end };
+    };
+
+    const getPeriodCounts = (period) => {
+      const { start, end } = getPeriodRange(period);
       const stats = { total: 0, inProgress: 0, followUp: 0, call: 0, done: 0 };
       entries.forEach((item) => {
         const d = new Date(item.sessionDate);
         if (!Number.isFinite(d.getTime())) return;
-        // End boundary for month/year is end of selected month/year, or now if earlier
-        let end = new Date(now);
-        if (period === 'month') {
-          const selYear = start.getFullYear();
-          const selMonth = start.getMonth();
-          end = new Date(selYear, selMonth + 1, 0, 23, 59, 59, 999);
-        } else if (period === 'year') {
-          const selYear = start.getFullYear();
-          end = new Date(selYear, 11, 31, 23, 59, 59, 999);
-        }
         if (d >= start && d <= end) {
           stats.total += 1;
           if (item.status === 'Dalam proses') stats.inProgress += 1;
@@ -820,27 +833,24 @@
       cancelEdit();
     });
 
-    exportCsvButton.addEventListener('click', () => {
-      if (!filteredCache.length) {
-        alert('Tiada rekod untuk dieksport.');
-        return;
-      }
+    const csvHeader = [
+      'Tarikh Sesi',
+      'Nama Murid',
+      'Program / Tahap / Sem',
+      'Jenis Sesi',
+      'Fokus Perkhidmatan',
+      'Status',
+      'Ringkasan',
+      'Tindakan',
+      'Susulan',
+      'Kaunselor',
+      'Lokasi',
+      'Tarikh Cipta'
+    ];
+
+    const formatCsvRows = (items) => {
       const escape = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
-      const header = [
-        'Tarikh Sesi',
-        'Nama Murid',
-        'Program / Tahap / Sem',
-        'Jenis Sesi',
-        'Fokus Perkhidmatan',
-        'Status',
-        'Ringkasan',
-        'Tindakan',
-        'Susulan',
-        'Kaunselor',
-        'Lokasi',
-        'Tarikh Cipta'
-      ];
-      const rows = filteredCache.map((item) => [
+      const rows = items.map((item) => [
         formatDateTime(item.sessionDate),
         item.studentName,
         item.className,
@@ -854,16 +864,45 @@
         item.location || '',
         formatDateTime(item.createdAt)
       ]);
-      const csv = [header, ...rows].map((row) => row.map(escape).join(',')).join('\n');
+      return [csvHeader, ...rows].map((row) => row.map(escape).join(',')).join('\n');
+    };
+
+    const downloadCsv = (items, filenamePrefix, emptyMessage = 'Tiada rekod dalam tempoh ini.') => {
+      if (!items.length) {
+        alert(emptyMessage);
+        return;
+      }
+      const csv = formatCsvRows(items);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `sessions-${Date.now()}.csv`;
+      link.download = `${filenamePrefix}-${Date.now()}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+    };
+
+    const getEntriesByPeriod = (period) => {
+      const { start, end } = getPeriodRange(period);
+      return entries.filter((item) => {
+        const d = new Date(item.sessionDate);
+        return Number.isFinite(d.getTime()) && d >= start && d <= end;
+      });
+    };
+
+    exportCsvButton.addEventListener('click', () => {
+      downloadCsv(filteredCache, 'sessions', 'Tiada rekod untuk dieksport.');
+    });
+
+    downloadButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const period = btn.dataset.downloadPeriod;
+        if (!period) return;
+        const byPeriod = getEntriesByPeriod(period);
+        downloadCsv(byPeriod, `sessions-${period}`, 'Tiada rekod dalam tempoh ini.');
+      });
     });
 
     tabButtons.forEach((btn) => {

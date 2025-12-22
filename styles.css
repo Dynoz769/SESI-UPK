@@ -1003,6 +1003,146 @@ tr:hover {
   font-weight: 700;
 }
 
+.print-sheet {
+  position: fixed;
+  inset: 0;
+  padding: 24px;
+  background: rgba(247, 241, 251, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  overflow: auto;
+}
+
+.print-card {
+  width: 100%;
+  max-width: 900px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 18px 38px rgba(82, 74, 120, 0.15);
+  color: var(--text);
+}
+
+.print-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.print-hint {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.print-meta {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.print-logo {
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+}
+
+.print-logo-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.print-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.print-row {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: linear-gradient(120deg, rgba(255, 143, 177, 0.08), rgba(166, 155, 255, 0.05));
+}
+
+.print-row.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.print-item {
+  border-left: 1px solid rgba(31, 34, 51, 0.08);
+  padding-left: 10px;
+}
+
+.print-item:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+.print-label {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.print-value {
+  font-weight: 800;
+  color: #2a2f44;
+}
+
+.print-value.pre-line {
+  white-space: pre-line;
+}
+
+.print-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+@page {
+  size: A4;
+  margin: 12mm;
+}
+
+@media print {
+  body {
+    background: #ffffff;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-sheet,
+  .print-sheet * {
+    visibility: visible;
+  }
+
+  .print-sheet {
+    display: block !important;
+    position: static;
+    inset: auto;
+    padding: 0;
+    background: #ffffff;
+    box-shadow: none;
+    overflow: visible;
+  }
+}
+
 @media (min-width: 960px) {
 
 }

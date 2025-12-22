@@ -378,6 +378,77 @@
     </main>
   </div>
 
+  <div id="printSheet" class="print-sheet hidden" aria-hidden="true">
+    <div class="print-card">
+      <header class="print-header">
+        <div>
+          <p class="eyebrow print-eyebrow">CSD - CLIENTS SESSION DATA</p>
+          <h2>Borang Rekod Sesi</h2>
+          <p class="print-hint">Cetak satu muka surat untuk simpanan fail guru.</p>
+          <p class="print-meta">Dicetak pada <span id="printGeneratedAt">-</span></p>
+        </div>
+        <div class="print-logo-block">
+          <img src="logo.jpeg" alt="Logo CSD" class="print-logo" />
+          <div class="print-meta">Kaunselor: <span id="printRecordedBy">-</span></div>
+        </div>
+      </header>
+
+      <div class="print-grid">
+        <div class="print-row">
+          <div class="print-label">Nama murid</div>
+          <div class="print-value" id="printStudent"></div>
+        </div>
+        <div class="print-row two-col">
+          <div class="print-item">
+            <div class="print-label">Program / Tahap / Sem</div>
+            <div class="print-value" id="printProgram"></div>
+          </div>
+          <div class="print-item">
+            <div class="print-label">Tarikh & masa sesi</div>
+            <div class="print-value" id="printSessionDate"></div>
+          </div>
+        </div>
+        <div class="print-row two-col">
+          <div class="print-item">
+            <div class="print-label">Jenis sesi</div>
+            <div class="print-value" id="printSessionType"></div>
+          </div>
+          <div class="print-item">
+            <div class="print-label">Fokus perkhidmatan</div>
+            <div class="print-value" id="printServiceFocus"></div>
+          </div>
+        </div>
+        <div class="print-row two-col">
+          <div class="print-item">
+            <div class="print-label">Status</div>
+            <div class="print-value" id="printStatus"></div>
+          </div>
+          <div class="print-item">
+            <div class="print-label">Tarikh susulan</div>
+            <div class="print-value" id="printFollowUp"></div>
+          </div>
+        </div>
+        <div class="print-row">
+          <div class="print-label">Lokasi sesi</div>
+          <div class="print-value" id="printLocation"></div>
+        </div>
+        <div class="print-row">
+          <div class="print-label">Ringkasan perbincangan / isu</div>
+          <div class="print-value pre-line" id="printNotes"></div>
+        </div>
+        <div class="print-row">
+          <div class="print-label">Tindakan / Intervensi</div>
+          <div class="print-value pre-line" id="printActions"></div>
+        </div>
+      </div>
+
+      <div class="print-footer">
+        <div class="print-meta">Tarikh rekod dibuat: <span id="printCreatedAt">-</span></div>
+        <div class="print-meta">Simpan bersama fail sesi.</div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDURmoIpmfcrxG8I6Uf7aBCBsiS-T0Hv8k",
@@ -441,6 +512,20 @@
     const uploadButton = document.getElementById('uploadButton');
     const uploadStatus = document.getElementById('uploadStatus');
     const uploadsList = document.getElementById('uploadsList');
+    const printSheet = document.getElementById('printSheet');
+    const printGeneratedAt = document.getElementById('printGeneratedAt');
+    const printStudent = document.getElementById('printStudent');
+    const printProgram = document.getElementById('printProgram');
+    const printSessionDate = document.getElementById('printSessionDate');
+    const printSessionType = document.getElementById('printSessionType');
+    const printServiceFocus = document.getElementById('printServiceFocus');
+    const printStatus = document.getElementById('printStatus');
+    const printFollowUp = document.getElementById('printFollowUp');
+    const printLocation = document.getElementById('printLocation');
+    const printNotes = document.getElementById('printNotes');
+    const printActions = document.getElementById('printActions');
+    const printRecordedBy = document.getElementById('printRecordedBy');
+    const printCreatedAt = document.getElementById('printCreatedAt');
 
     let entries = [];
     let editingId = null;
@@ -666,6 +751,39 @@
       chartPeriod = period;
     };
 
+    const setPrintValue = (el, value) => {
+      if (!el) return;
+      el.textContent = value || '-';
+    };
+
+    const showPrintSheet = (entry) => {
+      if (!printSheet) return;
+      setPrintValue(printStudent, entry.studentName);
+      setPrintValue(printProgram, entry.className || '-');
+      setPrintValue(printSessionDate, formatDateTime(entry.sessionDate));
+      setPrintValue(printSessionType, entry.sessionType || '-');
+      setPrintValue(printServiceFocus, entry.serviceFocus || '-');
+      setPrintValue(printStatus, entry.status || '-');
+      setPrintValue(printFollowUp, entry.followUp ? formatDateTime(entry.followUp) : '-');
+      setPrintValue(printLocation, entry.location || '-');
+      setPrintValue(printNotes, entry.sessionNotes || '-');
+      setPrintValue(printActions, entry.actions || '-');
+      setPrintValue(printRecordedBy, entry.recordedBy || 'Staf CSD');
+      setPrintValue(printCreatedAt, formatDateTime(entry.createdAt));
+      setPrintValue(printGeneratedAt, formatDateTime(Date.now()));
+      printSheet.classList.remove('hidden');
+      window.print();
+      setTimeout(() => {
+        printSheet.classList.add('hidden');
+      }, 300);
+    };
+
+    const printEntry = (id) => {
+      const entry = entries.find((item) => item.id === id);
+      if (!entry) return;
+      showPrintSheet(entry);
+    };
+
     const render = () => {
       const query = searchInput.value.trim().toLowerCase();
       const status = statusFilter.value;
@@ -725,13 +843,19 @@
           <td>
             <div class="table-actions">
               <button class="ghost small" data-edit="${item.id}">Edit</button>
+              <button class="ghost small" data-print="${item.id}">Cetak</button>
               <button class="ghost danger small" data-delete="${item.id}">Padam</button>
             </div>
           </td>
         `;
 
-        row.querySelector('[data-edit]').addEventListener('click', () => startEdit(item.id));
-        row.querySelector('[data-delete]').addEventListener('click', () => deleteEntry(item.id));
+        const editBtn = row.querySelector('[data-edit]');
+        const deleteBtn = row.querySelector('[data-delete]');
+        const printBtn = row.querySelector('[data-print]');
+
+        if (editBtn) editBtn.addEventListener('click', () => startEdit(item.id));
+        if (deleteBtn) deleteBtn.addEventListener('click', () => deleteEntry(item.id));
+        if (printBtn) printBtn.addEventListener('click', () => printEntry(item.id));
 
         logBody.appendChild(row);
       });
